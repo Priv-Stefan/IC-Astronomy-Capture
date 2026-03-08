@@ -1,0 +1,26 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+
+    <qresource prefix="/">
+
+        <!-- Toolbar / menu icons.
+             Place your actual icon files (PNG, 24x24 or 32x32 recommended)
+             in the icons/ directory and list them here. -->
+
+        <file>icons/camera_select.png</file>
+        <file>icons/camera_config.png</file>
+        <file>icons/options.png</file>
+        <file>icons/about.png</file>
+        <file>icons/quit.png</file>
+        <file>icons/capture.png</file>
+        <file>icons/flat_field.png</file>
+
+    </qresource>
+
+    <qresource prefix="/translations">
+        <!-- Compiled .qm files are generated from the .ts sources -->
+        <!--<file>translations/ic_astronomy_en.qm</file>
+        <file>translations/ic_astronomy_de.qm</file>-->
+    </qresource>
+
+</RCC>
