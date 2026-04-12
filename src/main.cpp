@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     // Application metadata used by QSettings
-    //QApplication::setOrganizationName("IC-Astronomy");
+    QApplication::setOrganizationName("IC-Astronomy");
     QApplication::setApplicationName(APP_NAME);
     QApplication::setApplicationVersion(APP_VERSION);
 

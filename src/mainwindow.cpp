@@ -30,6 +30,7 @@
 #include <QDebug>
 #include <QStandardPaths>
 #include <QDir>
+#include <QFileInfo>
 
 
 #include "DeviceSelectionDialog.h"
@@ -53,9 +54,12 @@ MainWindow::MainWindow(QWidget *parent)
     createCentralWidget();
     createStatusBar();
 
-    auto appDataDirectory = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    QDir(appDataDirectory).mkdir(".");
-    _devicefile = appDataDirectory.toStdString() + "/ic4-astronomy.json";
+    auto appDataDirectory = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+    QString apppath = QDir::cleanPath(appDataDirectory +
+        QDir::separator() +
+        "ic-astronomy-capture");
+    QDir(appDataDirectory).mkdir(apppath);
+    _devicefile += apppath.toStdString() + "/ic4-astronomy.json";
 
     try
     {
@@ -95,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    writeSettings();
+    //writeSettings();
 }
 
 // ============================================================
@@ -204,6 +208,9 @@ QWidget* MainWindow::createCaptureTab()
     // --- Project group ---
     QGroupBox *grpProject = new QGroupBox(tr("Project"), tab);
     QFormLayout *frmProject = new QFormLayout(grpProject);
+
+    m_editSaveDir = new QLineEdit(grpProject);
+    frmProject->addRow(tr("Image Directory:"), m_editSaveDir);
 
     m_editProjectName = new QLineEdit(grpProject);
     m_editProjectName->setPlaceholderText(tr("e.g. M42_Orion_Nebula"));
@@ -426,6 +433,8 @@ void MainWindow::readSettings()
     m_settings.endGroup();
 
     m_settings.beginGroup("capture");
+  
+    m_editSaveDir->setText(m_settings.value("saveDir").toString());
     m_editProjectName->setText(m_settings.value("projectName").toString());
     m_editUserName->setText(m_settings.value("userName").toString());
     m_editTelescope->setText(m_settings.value("telescope").toString());
@@ -433,6 +442,11 @@ void MainWindow::readSettings()
     m_spinLongitude->setValue(m_settings.value("longitude", 0.0).toDouble());
     m_spinNumImages->setValue(m_settings.value("numImages", 10).toInt());
     m_settings.endGroup();
+
+    if (m_editSaveDir->text() == "")
+    {
+        m_editSaveDir->setText(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation));
+    }
 
     m_settings.beginGroup("camera");
     m_spinExposure->setValue(m_settings.value("exposure", 100.0).toDouble());
@@ -448,6 +462,8 @@ void MainWindow::writeSettings()
     m_settings.endGroup();
 
     m_settings.beginGroup("capture");
+    qDebug() << m_editSaveDir->text();
+    m_settings.setValue("saveDir",    m_editSaveDir->text());
     m_settings.setValue("projectName", m_editProjectName->text());
     m_settings.setValue("userName",    m_editUserName->text());
     m_settings.setValue("telescope",   m_editTelescope->text());
@@ -529,14 +545,35 @@ void MainWindow::framesQueued(ic4::QueueSink& sink)
     {
         if (_savedImageCounter > 0)
         {
-            _savedImageCounter = 0;
+            _savedImageCounter--;
             FitsMetadata meta;
             meta.cameraModel = QString::fromStdString(_grabber.deviceInfo().modelName());
-            FitsSaver::save("test.fits", *buffer, meta);
+            QString filename = createImageFileName();
+            auto x = filename.toLocal8Bit().data();
+
+            FitsSaver::save(filename, *buffer, meta);
         }
 
         _display->displayBuffer(buffer);
     }
 
     return;
+}
+
+QString MainWindow::createImageFileName()
+{
+    QString dirname =QDir::cleanPath( m_editSaveDir->text() +
+        QDir::separator() +
+        m_editProjectName->text());
+    QDir().mkdir(dirname);
+
+    QString filename;
+    int filecounter = 0;
+    do
+    {
+        filename = QDir::cleanPath(dirname + QDir::separator() +
+            m_editProjectName->text() + QString("_%1.fits").arg(filecounter, 5, 10, '0'));
+        filecounter++;
+    } while (QFileInfo::exists(filename));
+    return filename;
 }

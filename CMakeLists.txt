@@ -19,6 +19,7 @@ set(QT_REQUIRED_TOP_LEVEL ${PROJECT_IS_TOP_LEVEL})
 if( NOT TARGET qt6-dialogs )
     add_subdirectory(${IC4_EXAMPLES}common/qt6-dialogs ${CMAKE_BINARY_DIR}/demoapp-qt6-dialogs)
 endif()
+#find_package(zlib CONFIG REQUIRED)
 
 # find_package(cfitsio CONFIG REQUIRED)
 link_directories(${CMAKE_SOURCE_DIR}/lib/cfitsio)

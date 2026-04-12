@@ -66,6 +66,7 @@ private:
     void createCentralWidget();
     QWidget* createCaptureTab();
     QWidget* createCameraTab();
+    QString createImageFileName();
 
     void readSettings();
     void writeSettings();
@@ -92,6 +93,7 @@ private:
     QTabWidget  *m_tabWidget   = nullptr;
 
     // ---- Capture tab widgets ----
+    QLineEdit    *m_editSaveDir     = nullptr;
     QLineEdit    *m_editProjectName = nullptr;
     QLineEdit    *m_editUserName    = nullptr;
     QLineEdit    *m_editTelescope   = nullptr;
