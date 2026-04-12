@@ -1,0 +1,6 @@
+out/
+.vs/
+CMakePresets.json
+CMakeSettings.json
+CMakeUserPresets.json
+lib/cfitsio/zlibd1.dll
