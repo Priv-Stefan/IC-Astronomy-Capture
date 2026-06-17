@@ -88,12 +88,12 @@ void FitsSaver::writeMetaKeys(void*              fptr_void,
 
     // Aufnahmeparameter
     fits_write_key(fptr, TDOUBLE, "EXPTIME",
-                   const_cast<double*>(&meta.exposureTime),
-                   "Exposure time [s]", &status);
+                   const_cast<int*>(&meta.exposureTime),
+                   "Exposure time [us]", &status);
 
     fits_write_key(fptr, TINT, "GAIN",
-                   const_cast<int*>(&meta.gain),
-                   "Gain", &status);
+                   const_cast<double*>(&meta.gain),
+                   "Gain dB", &status);
 
     fits_write_key(fptr, TINT, "OFFSET",
                    const_cast<int*>(&meta.offset),
@@ -107,6 +107,18 @@ void FitsSaver::writeMetaKeys(void*              fptr_void,
     fits_write_key(fptr, TDOUBLE, "LAT-OBS",
                    const_cast<double*>(&meta.latitude),
                    "Observer latitude [deg]", &status);
+
+    if (!meta.telescope.isEmpty()) {
+        QByteArray typeBA = meta.telescope.toLocal8Bit();
+        fits_write_key(fptr, TSTRING, "TELESCOPE",
+            typeBA.data(), "Telescope", &status);
+    }
+
+    if (!meta.username.isEmpty()) {
+        QByteArray typeBA = meta.username.toLocal8Bit();
+        fits_write_key(fptr, TSTRING, "USER",
+            typeBA.data(), "User", &status);
+    }
 
     // Frame-Typ (Light, Dark, Flat, Bias)
     if (!meta.frameType.isEmpty()) {

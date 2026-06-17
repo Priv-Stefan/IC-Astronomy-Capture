@@ -75,7 +75,8 @@ private:
     bool sinkConnected(ic4::QueueSink& sink, const ic4::ImageType& imageType, size_t min_buffers_required) final;
     void framesQueued(ic4::QueueSink& sink) final;
 
-
+    void onExposureChanged(int value);
+    void onGainChanged(double value);
 
 
     // ---- Actions ----
@@ -103,7 +104,7 @@ private:
     QPushButton  *m_btnCapture      = nullptr;
 
     // ---- Camera tab widgets ----
-    QDoubleSpinBox *m_spinExposure  = nullptr;
+    QSpinBox *m_spinExposure  = nullptr;
     QDoubleSpinBox *m_spinGain      = nullptr;
     QPushButton    *m_btnFlatField  = nullptr;
 

@@ -271,12 +271,13 @@ QWidget* MainWindow::createCameraTab()
     QGroupBox *grpCamera = new QGroupBox(tr("Camera Settings"), tab);
     QFormLayout *frmCamera = new QFormLayout(grpCamera);
 
-    m_spinExposure = new QDoubleSpinBox(grpCamera);
-    m_spinExposure->setRange(0.001, 60000.0);
-    m_spinExposure->setDecimals(3);
+    m_spinExposure = new QSpinBox(grpCamera);
+    m_spinExposure->setRange(1, 60000);
     m_spinExposure->setValue(100.0);
-    m_spinExposure->setSuffix(tr(" ms"));
+    m_spinExposure->setSuffix(tr(" µs"));
     m_spinExposure->setSingleStep(10.0);
+    connect(m_spinExposure, &QSpinBox::valueChanged, this, &MainWindow::onExposureChanged);
+    
     frmCamera->addRow(tr("Exposure:"), m_spinExposure);
 
     m_spinGain = new QDoubleSpinBox(grpCamera);
@@ -285,6 +286,8 @@ QWidget* MainWindow::createCameraTab()
     m_spinGain->setValue(0.0);
     m_spinGain->setSuffix(tr(" dB"));
     m_spinGain->setSingleStep(0.5);
+    connect(m_spinGain, &QDoubleSpinBox::valueChanged, this, &MainWindow::onGainChanged);
+
     frmCamera->addRow(tr("Gain:"), m_spinGain);
 
     // --- Flat field group ---
@@ -506,12 +509,45 @@ void MainWindow::startstopstream()
             else
             {
                 _grabber.streamSetup(_queuesink);
+                auto map = _grabber.devicePropertyMap();
+                map.setValue(ic4::PropId::TriggerMode, "Off");
+                map.setValue(ic4::PropId::GainAuto, "Off");
+                map.setValue(ic4::PropId::ExposureAuto, "Off");
+
+
+                auto exposure = map.find(ic4::PropId::ExposureTime);
+                m_spinExposure->blockSignals(true);
+                m_spinExposure->setRange(exposure.minimum(), exposure.maximum());
+                m_spinExposure->setValue(exposure.getValue());
+                m_spinExposure->blockSignals(false);
+                auto gain = map.find(ic4::PropId::Gain);
+
+                m_spinGain->blockSignals(true);
+                m_spinGain->setRange(gain.minimum(), gain.maximum());
+                m_spinGain->setValue(gain.getValue());
+                m_spinGain->blockSignals(false);
             }
         }
     }
     catch (ic4::IC4Exception ex)
     {
         QMessageBox::warning(this, {}, ex.what());
+    }
+}
+
+void MainWindow::onExposureChanged(int value)
+{
+    if (_grabber.isDeviceValid())
+    {
+        _grabber.devicePropertyMap().setValue(ic4::PropId::ExposureTime, value);
+    }
+}
+
+void MainWindow::onGainChanged(double value)
+{
+    if (_grabber.isDeviceValid())
+    {
+        _grabber.devicePropertyMap().setValue(ic4::PropId::Gain, value);
     }
 }
 
@@ -548,6 +584,11 @@ void MainWindow::framesQueued(ic4::QueueSink& sink)
             _savedImageCounter--;
             FitsMetadata meta;
             meta.cameraModel = QString::fromStdString(_grabber.deviceInfo().modelName());
+            meta.exposureTime = _grabber.devicePropertyMap().getValueDouble(ic4::PropId::ExposureTime);
+            meta.gain = _grabber.devicePropertyMap().getValueDouble(ic4::PropId::Gain);
+            meta.telescope = m_editTelescope->text();
+            meta.username = m_editUserName->text();
+
             QString filename = createImageFileName();
             auto x = filename.toLocal8Bit().data();
 

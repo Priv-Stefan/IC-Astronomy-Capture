@@ -14,11 +14,13 @@ struct FitsMetadata
     QDateTime dateTime;
     double    longitude    = 0.0;   // Beobachterposition
     double    latitude     = 0.0;
-    double    exposureTime = 0.0;   // Sekunden
-    int       gain         = 0;
+    int       exposureTime = 0;     // microsekunden
+    double    gain         = 0.0;
     int       offset       = 0;
     QString   bayerPattern;         // "RGGB","BGGR","GRBG","GBRG" – leer = kein Bayer
     QString   frameType;            // "Light", "Dark", "Flat", "Bias"
+    QString   telescope;
+    QString   username;
 };
 
 // ============================================================
